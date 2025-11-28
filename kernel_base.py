@@ -298,47 +298,42 @@ class Kernel:
         # A EQUIPE 3 DEVE IMPLEMENTAR ESTA FUNÇÃO
         # 
 
-        if dest_pid not in self.tabela_de_processos:
-            print(f"[Erro] Processo destino {dest_pid} não existe.")
-            return
-
-        # Se não existe caixa de entrada, cria
+        # Cria fila de mensagens se ainda não existir
         if dest_pid not in self.mensagens:
-            self.mensagens[dest_pid] = deque()
+            self.mensagens[dest_pid] = []
 
-        # Armazena a mensagem
+        # Adiciona a mensagem na fila do destinatário
         self.mensagens[dest_pid].append(mensagem)
-        print(f"[Kernel] (Equipe 3) Mensagem enviada para PID {dest_pid}: {mensagem}")
+        print(f"[Kernel] Mensagem enviada para PID {dest_pid}: {mensagem}")
 
-        # Desbloqueia se estiver esperando mensagem
-        processo_dest = self.tabela_de_processos[dest_pid]
-        if processo_dest.estado == EstadoProcesso.BLOQUEADO:
-            processo_dest.estado = EstadoProcesso.PRONTO
-            self.fila_de_prontos.append(processo_dest)
-            print(f"[Kernel] Processo {dest_pid} desbloqueado (recebeu mensagem).")
+        # Verificar se o processo está bloqueado esperando mensagem
+        pcb = self.tabela_de_processos[dest_pid]
+        if pcb.estado == EstadoProcesso == "BLOQUEADO":
+            pcb.estado = EstadoProcesso = "PRONTO"
+            self.fila_de_prontos.append(pcb)
+            print(f"[Kernel] Processo {dest_pid} desbloqueado (mensagem chegou).")
+
+        return 0
     
     def sys_msg_receive(self, pid):
-        # Se processo não tem caixa ou está vazia → deve bloquear
-        if pid not in self.mensagens or len(self.mensagens[pid]) == 0:
-            processo = self.tabela_de_processos[pid]
+        # Se processo não tem caixa ou está vazia  deve bloquear
+        # 1. Verificar se caixa existe e tem mensagem
+        # Se há mensagens esperando para esse PID  entrega imediatamente
+        if pid in self.mensagens and len(self.mensagens[pid]) > 0:
+            msg = self.mensagens[pid].pop(0)
+            print(f"[Kernel] PID {pid} recebeu mensagem: {msg}")
+            return msg
 
-        print(f"[Kernel] Processo {pid} não tem mensagens. Bloqueando...")
+        # Se não há mensagem → bloqueia o processo
+        pcb = self.tabela_de_processos[pid]
+        pcb.estado = EstadoProcesso.BLOQUEADO
+        print(f"[Kernel] PID {pid} bloqueado. Aguardando mensagem.")
 
-        # Muda estado
-        processo.estado = EstadoProcesso.BLOQUEADO
+        # Remover da fila de prontos (se estiver lá)
+        if pcb in self.fila_de_prontos:
+            self.fila_de_prontos.remove(pcb)
 
-        # Remove da fila de prontos se estiver lá
-        try:
-            self.fila_de_prontos.remove(processo)
-        except ValueError:
-            pass  # já não estava na fila
-
-            return None
-
-        # Se houver mensagem → retorna a primeira
-        mensagem = self.mensagens[pid].popleft()
-        print(f"[Kernel] (Equipe 3) Mensagem recebida por {pid}: {mensagem}")
-        return mensagem
+        return None
 
     # --- Equipe 4: Criação e Encerramento de Threads ---
     def sys_create_thread(self, pid, funcao_inicio):
@@ -507,3 +502,14 @@ if __name__ == "__main__":
         kernel_so.loop_principal()
     except KeyboardInterrupt:
         print("\n[Kernel] Simulação interrompida pelo usuário (Ctrl+C).")
+
+    # Teste para criar os processos e enviar as mensagens
+    p1 = kernel_so.sys_create_process("p1")
+    p2 = kernel_so.sys_create_process("p2")
+
+    kernel_so.sys_msg_send(p1, "Ola, processo 1")
+    kernel_so.sys_msg_send(p2, "Ola, processo 2")
+
+    print("\n--- Testando recebimento ---")
+    kernel_so.sys_msg_receive(p1)
+    kernel_so.sys_msg_receive(p2)
