@@ -302,11 +302,11 @@ class Kernel:
             print(f"[Kernel] (Equipe 3) Erro: processo destino {dest_pid} não existe.")
             return -1
 
-        # Cria fila de mensagens se ainda não existir
+        # Cria fila de mensagens se ainda nao existir
         if dest_pid not in self.mensagens:
             self.mensagens[dest_pid] = []
 
-        # Adiciona a mensagem na fila do destinatário
+        # Adiciona a mensagem na fila do destinatario
         self.mensagens[dest_pid].append(mensagem)
         print(f"[Kernel] (Equipe 3) Mensagem enviada para PID {dest_pid}: {mensagem}")
 
