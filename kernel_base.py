@@ -314,9 +314,7 @@ class Kernel:
         pcb = self.tabela_de_processos[dest_pid]
         if pcb.estado == EstadoProcesso.BLOQUEADO:
             pcb.estado = EstadoProcesso.PRONTO
-            # evita duplicatas na fila: só adiciona se não estiver
-            if pcb not in self.fila_de_prontos:
-                self.fila_de_prontos.append(pcb)
+
             print(f"[Kernel] (Equipe 3) Processo {dest_pid} desbloqueado (mensagem chegou).")
         return 0                        
 
@@ -505,6 +503,7 @@ class Kernel:
 # ================================================================================
 
 if __name__ == "__main__":
+
     # Cria o Kernel, que por sua vez inicializa todo o hardware
     kernel_so = Kernel()
     
@@ -515,7 +514,6 @@ if __name__ == "__main__":
     kernel_so.sys_msg_send(p1, "Ola, processo 1")
     kernel_so.sys_msg_send(p2, "Ola, processo 2")
 
-    print("\n--- Testando recebimento ---")
     kernel_so.sys_msg_receive(p1)
     kernel_so.sys_msg_receive(p2)
 
